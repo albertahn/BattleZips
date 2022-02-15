@@ -1,6 +1,7 @@
 const { ethers } = require('hardhat')
 const { buildMimcSponge } = require("circomlibjs")
 const snarkjs = require('snarkjs')
+const { expect } = require('chai').use(require('chai-as-promised'))
 
 // verification key json files
 const verificationKeys = {
@@ -108,13 +109,13 @@ describe('Play Battleship on-chain', async () => {
         await snarkjs.groth16.verify(verificationKeys.shot, publicSignals, proof)
         // prove alice's registered shot hit, and register bob's next shot
         let args = buildArgs(proof, publicSignals)
-        console.log('bobargs', args)
-        await (await game.connect(bob).turn(
+        let tx = await (await game.connect(bob).turn(
             1, // game id
             true, // hit bool
             shots.bob[aliceNonce - 1], // returning fire / next shot to register (not part of proof)
             args[0], // pi.a
-            args[1], // pi.b
+            args[1][0], // pi.b_0
+            args[1][1], //pi.b_1
             args[2] // pi.c
         )).wait()
         /// ALICE PROVES BOB PREV REGISTERED SHOT MISSED ///
@@ -136,13 +137,13 @@ describe('Play Battleship on-chain', async () => {
         await snarkjs.groth16.verify(verificationKeys.shot, publicSignals, proof)
         // prove bob's registered shot missed, and register alice's next shot
         args = buildArgs(proof, publicSignals)
-        console.log('aliceargs', args)
         await (await game.connect(alice).turn(
             1, // game id
             false, // hit bool
             shots.alice[aliceNonce], // returning fire / next shot to register (not part of proof)
             args[0], // pi.a
-            args[1], // pi.b
+            args[1][0], // pi.b_0
+            args[1][1], // pi.b_1
             args[2] // pi.c
         )).wait()
     }
@@ -168,7 +169,8 @@ describe('Play Battleship on-chain', async () => {
         token = await tokenFactory.deploy()
         // deploy game
         const gameFactory = await ethers.getContractFactory('BattleshipGame')
-        game = await gameFactory.deploy(bv.address, sv.address, token.address)
+        game = await gameFactory.deploy(ethers.constants.AddressZero, bv.address, sv.address, token.address)
+        console.log('game addr', game.address)
         // give players tickets and allow game contract to spend
         await (await token.connect(alice).mint(alice.address, one)).wait()
         await (await token.connect(alice).approve(game.address, one)).wait()
@@ -197,11 +199,12 @@ describe('Play Battleship on-chain', async () => {
             )
             // prove on-chain hash is of valid board configuration
             const args = buildArgs(proof, publicSignals)
-            await (await game.connect(alice).newGame(
+            let tx = await (await game.connect(alice).newGame(
                 F.toObject(boardHashes.alice),
-                args[0],
-                args[1],
-                args[2]
+                args[0], //pi.a
+                args[1][0], //pi.b_0
+                args[1][1], //pi.b_1
+                args[2] //pi.c
             )).wait()
         })
         it("Join an existing game", async () => {
@@ -227,9 +230,10 @@ describe('Play Battleship on-chain', async () => {
             await (await game.connect(bob).joinGame(
                 1,
                 F.toObject(boardHashes.bob),
-                args[0],
-                args[1],
-                args[2]
+                args[0], //pi.a
+                args[1][0], //pi.b_0
+                args[1][1], //pi.b_1
+                args[2] //pi.c
             ))
         })
         it("opening shot", async () => {
@@ -263,7 +267,8 @@ describe('Play Battleship on-chain', async () => {
                 true, // hit bool
                 [0, 0], // shot params are ignored on reporting all ships sunk, can be any uint256
                 args[0], // pi.a
-                args[1], // pi.b
+                args[1][0], // pi.b_0
+                args[1][1], // pi.b_1
                 args[2] // pi.c
             )).wait()
         })
