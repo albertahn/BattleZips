@@ -1,5 +1,5 @@
 /// ZK-Battleship Utilities
-
+const biconomy = require('./biconomy')
 const { ethers } = require('hardhat')
 const { buildMimcSponge } = require("circomlibjs")
 
@@ -69,15 +69,17 @@ function buildProofArgs(proof) {
 /**
  * Initialize new environment for interacting with ZK-Battleship game contracts
  * 
+ * @param {string} forwarder - address of erc2771 trusted forwarder contract
  * @returns {Object} :
  *  - sv: ShotVerifier contract object
  *  - bv: BoardVerifier contract object
  *  - token: Mock ERC20 contract object
  *  - game: ZK-Battleship contract object
  *  - mimcSponge: initialized MiMC Sponge ZK-Friendly hash function object from circomlibjs
+ *  - boardHashes: hashed versions of alice/ bob boards
  *  - F: initialized ffjavascript BN254 curve object derived from mimcSponge
  */
-async function initialize() {
+async function initialize(forwarder) {
     // deploy verifiers
     const svFactory = await ethers.getContractFactory('ShotVerifier')
     const sv = await svFactory.deploy()
@@ -88,7 +90,7 @@ async function initialize() {
     const token = await tokenFactory.deploy()
     // deploy game
     const gameFactory = await ethers.getContractFactory('BattleshipGame')
-    const game = await gameFactory.deploy(ethers.constants.AddressZero, bv.address, sv.address, token.address)
+    const game = await gameFactory.deploy(forwarder, bv.address, sv.address, token.address)
 
     // set players
     const signers = await ethers.getSigners()
@@ -99,7 +101,6 @@ async function initialize() {
     await (await token.connect(alice).approve(game.address, one)).wait()
     await (await token.connect(bob).mint(bob.address, one)).wait()
     await (await token.connect(bob).approve(game.address, one)).wait()
-
     // instantiate mimc sponge on bn254 curve + store ffjavascript obj reference
     const mimcSponge = await buildMimcSponge()
     // store board hashes for quick use
@@ -127,4 +128,5 @@ module.exports = {
     initialize,
     buildProofArgs,
     printLog,
+    biconomy
 }

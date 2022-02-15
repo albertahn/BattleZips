@@ -38,7 +38,7 @@ contract BattleshipGame is IBattleshipGame {
         address current = games[_game].nonce % 2 == 0
             ? games[_game].participants[0]
             : games[_game].participants[1];
-        require(_msgSender() == current, "oper");
+        require(_msgSender() == current, "!Turn");
         _;
     }
 
@@ -69,7 +69,7 @@ contract BattleshipGame is IBattleshipGame {
      * @param _ticket address - the address of the ERC20 token required to be spent to play the game
      */
     constructor(address _forwarder, address _bv, address _sv, address _ticket) 
-        ERC2771ContextUpgradeable(_forwarder)
+        ERC2771Context(_forwarder)
     {
         bv = IBoardVerifier(_bv);
         sv = IShotVerifier(_sv);

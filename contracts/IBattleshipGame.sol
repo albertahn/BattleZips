@@ -2,14 +2,14 @@
 pragma solidity >=0.8.11;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts-upgradeable/metatx/ERC2771ContextUpgradeable.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "./IVerifier.sol";
 
 /**
  * Abstraction for Zero-Knowledge Battleship Game
  * Operates at a 5% margin on winnings (1 XDAI in from 2 players, 1.95 XDAI to winner)
  */
-abstract contract IBattleshipGame is ERC2771ContextUpgradeable {
+abstract contract IBattleshipGame is ERC2771Context {
 
     event Started(uint256 _nonce);
     event Joined(uint256 _nonce);

@@ -1,12 +1,18 @@
 const { ethers } = require('hardhat')
-const { buildMimcSponge } = require("circomlibjs")
 const snarkjs = require('snarkjs')
-const { boards, shots, verificationKeys, initialize, buildProofArgs, printLog } = require("./utils")
+const {
+    boards,
+    shots,
+    verificationKeys,
+    initialize,
+    buildProofArgs,
+    printLog,
+} = require("./utils")
 
 describe('Play Battleship on-chain', async () => {
     let operator, alice, bob // players
     let bv, sv, token, game // contracts
-    let mimcSponge, F // zk constructs
+    let F // ffjavascript BN254 construct
     let boardHashes // store hashed board for alice and bob
 
     /**
@@ -75,7 +81,7 @@ describe('Play Battleship on-chain', async () => {
         alice = signers[1];
         bob = signers[2];
         // initialize and store 
-        ({ bv, sv, token, game, mimcSponge, F, boardHashes } = await initialize())
+        ({ bv, sv, token, game, F, boardHashes } = await initialize(ethers.constants.AddressZero))
     })
 
     describe("Play game to completion", async () => {
@@ -93,12 +99,12 @@ describe('Play Battleship on-chain', async () => {
             )
             // verify proof locally
             await snarkjs.groth16.verify(
-                require('../zk/board_verification_key.json'),
+                verificationKeys.board,
                 publicSignals,
                 proof
             )
             // prove on-chain hash is of valid board configuration
-            const proofArgs = buildProofArgs(proof, publicSignals)
+            const proofArgs = buildProofArgs(proof)
             let tx = await (await game.connect(alice).newGame(
                 F.toObject(boardHashes.alice),
                 ...proofArgs //pi_a, pi_b_0, pi_b_1, pi_c
@@ -118,7 +124,7 @@ describe('Play Battleship on-chain', async () => {
             )
             // verify proof locally
             await snarkjs.groth16.verify(
-                require('../zk/board_verification_key.json'),
+                verificationKeys.board,
                 publicSignals,
                 proof
             )
