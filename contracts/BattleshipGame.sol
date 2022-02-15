@@ -11,7 +11,7 @@ contract BattleshipGame is IBattleshipGame {
      * Ensure only contract owner can collect procedes/ administrate contract
      */
     modifier onlyOperator() {
-        require(msg.sender == operator, "!Operator");
+        require(_msgSender() == operator, "!Operator");
         _;
     }
 
@@ -20,10 +20,10 @@ contract BattleshipGame is IBattleshipGame {
      */
     modifier canPlay() {
         require(
-            ticket.allowance(msg.sender, address(this)) >= 1 ether,
+            ticket.allowance(_msgSender(), address(this)) >= 1 ether,
             "!Tickets"
         );
-        require(playing[msg.sender] == 0, "Reentrant");
+        require(playing[_msgSender()] == 0, "Reentrant");
         _;
     }
 
@@ -33,12 +33,12 @@ contract BattleshipGame is IBattleshipGame {
      * @param _game uint256 - the nonce of the game to check playability for 
      */
     modifier myTurn(uint256 _game) {
-        require(playing[msg.sender] == _game, "!Playing");
+        require(playing[_msgSender()] == _game, "!Playing");
         require(games[_game].winner == address(0), "!Playable");
         address current = games[_game].nonce % 2 == 0
             ? games[_game].participants[0]
             : games[_game].participants[1];
-        require(msg.sender == current, "oper");
+        require(_msgSender() == current, "oper");
         _;
     }
 
@@ -74,7 +74,7 @@ contract BattleshipGame is IBattleshipGame {
         bv = IBoardVerifier(_bv);
         sv = IShotVerifier(_sv);
         ticket = IERC20(_ticket);
-        operator = msg.sender;
+        operator = _msgSender();
     }
 
     /// MUTABLE FUNCTIONS ///
@@ -90,11 +90,11 @@ contract BattleshipGame is IBattleshipGame {
             bv.verifyProof(a, [b_0, b_1], c, [_boardHash]),
             "Invalid Board Config!"
         );
-        ticket.transferFrom(msg.sender, address(this), 1 ether);
+        ticket.transferFrom(_msgSender(), address(this), 1 ether);
         gameIndex++;
-        games[gameIndex].participants[0] = msg.sender;
+        games[gameIndex].participants[0] = _msgSender();
         games[gameIndex].boards[0] = _boardHash;
-        playing[msg.sender] = gameIndex;
+        playing[_msgSender()] = gameIndex;
         emit Started(gameIndex);
     }
 
@@ -110,10 +110,10 @@ contract BattleshipGame is IBattleshipGame {
             bv.verifyProof(a, [b_0, b_1], c, [_boardHash]),
             "Invalid Board Config!"
         );
-        ticket.transferFrom(msg.sender, address(this), 1 ether);
-        games[_game].participants[1] = msg.sender;
+        ticket.transferFrom(_msgSender(), address(this), 1 ether);
+        games[_game].participants[1] = _msgSender();
         games[_game].boards[1] = _boardHash;
-        playing[msg.sender] = _game;
+        playing[_msgSender()] = _game;
         emit Joined(_game);
     }
 

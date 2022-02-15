@@ -1,7 +1,6 @@
 const { ethers } = require('hardhat')
 const { buildMimcSponge } = require("circomlibjs")
 const snarkjs = require('snarkjs')
-const { expect } = require('chai').use(require('chai-as-promised'))
 
 // verification key json files
 const verificationKeys = {
@@ -170,7 +169,6 @@ describe('Play Battleship on-chain', async () => {
         // deploy game
         const gameFactory = await ethers.getContractFactory('BattleshipGame')
         game = await gameFactory.deploy(ethers.constants.AddressZero, bv.address, sv.address, token.address)
-        console.log('game addr', game.address)
         // give players tickets and allow game contract to spend
         await (await token.connect(alice).mint(alice.address, one)).wait()
         await (await token.connect(alice).approve(game.address, one)).wait()
