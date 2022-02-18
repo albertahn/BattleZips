@@ -4,7 +4,6 @@ pragma solidity >=0.8.11;
 import "./IBattleshipGame.sol";
 
 contract BattleshipGame is IBattleshipGame {
-
     /// MODIFIERS ///
 
     /**
@@ -30,7 +29,7 @@ contract BattleshipGame is IBattleshipGame {
     /**
      * Determine whether message sender is allowed to call a turn function
      *
-     * @param _game uint256 - the nonce of the game to check playability for 
+     * @param _game uint256 - the nonce of the game to check playability for
      */
     modifier myTurn(uint256 _game) {
         require(playing[_msgSender()] == _game, "!Playing");
@@ -68,9 +67,12 @@ contract BattleshipGame is IBattleshipGame {
      * @param _sv address - the address of the shot hit/miss prover
      * @param _ticket address - the address of the ERC20 token required to be spent to play the game
      */
-    constructor(address _forwarder, address _bv, address _sv, address _ticket) 
-        ERC2771Context(_forwarder)
-    {
+    constructor(
+        address _forwarder,
+        address _bv,
+        address _sv,
+        address _ticket
+    ) ERC2771Context(_forwarder) {
         bv = IBoardVerifier(_bv);
         sv = IShotVerifier(_sv);
         ticket = IERC20(_ticket);
@@ -95,7 +97,7 @@ contract BattleshipGame is IBattleshipGame {
         games[gameIndex].participants[0] = _msgSender();
         games[gameIndex].boards[0] = _boardHash;
         playing[_msgSender()] = gameIndex;
-        emit Started(gameIndex);
+        emit Started(gameIndex, _msgSender());
     }
 
     function joinGame(
@@ -114,10 +116,14 @@ contract BattleshipGame is IBattleshipGame {
         games[_game].participants[1] = _msgSender();
         games[_game].boards[1] = _boardHash;
         playing[_msgSender()] = _game;
-        emit Joined(_game);
+        emit Joined(_game, _msgSender());
     }
 
-    function firstTurn(uint256 _game, uint256[2] memory _shot) external override myTurn(_game) {
+    function firstTurn(uint256 _game, uint256[2] memory _shot)
+        external
+        override
+        myTurn(_game)
+    {
         Game storage game = games[_game];
         require(game.nonce == 0, "!Turn1");
         game.shots[game.nonce] = _shot;
@@ -139,7 +145,9 @@ contract BattleshipGame is IBattleshipGame {
         uint256 boardHash = game.boards[game.nonce % 2];
         uint256[2] memory shot = game.shots[game.nonce - 1];
         uint256 hitInt;
-        assembly { hitInt := _hit }
+        assembly {
+            hitInt := _hit
+        }
         require(
             sv.verifyProof(
                 a,
@@ -152,7 +160,12 @@ contract BattleshipGame is IBattleshipGame {
         // update game state
         game.hits[game.nonce - 1] = _hit;
         if (_hit) game.hitNonce[(game.nonce - 1) % 2]++;
-        emit Shot(_game, game.nonce - 1, _hit);
+        emit Shot(
+            uint8(shot[0]),
+            uint8(shot[1]),
+            _game,
+            _hit
+        );
         // check if game over
         if (game.hitNonce[(game.nonce - 1) % 2] >= HIT_MAX) gameOver(_game);
         else {
@@ -170,13 +183,18 @@ contract BattleshipGame is IBattleshipGame {
 
     /// VIEWABLE FUNCTIONS ///
 
-    function gameState(uint256 _game) external override view returns (
-        address[2] memory _participants,
-        uint256[2] memory _boards,
-        uint256 _turnNonce,
-        uint256[2] memory _hitNonce,
-        address _winner
-    ) {
+    function gameState(uint256 _game)
+        external
+        view
+        override
+        returns (
+            address[2] memory _participants,
+            uint256[2] memory _boards,
+            uint256 _turnNonce,
+            uint256[2] memory _hitNonce,
+            address _winner
+        )
+    {
         _participants = games[_game].participants;
         _boards = games[_game].boards;
         _turnNonce = games[_game].nonce;
@@ -202,6 +220,6 @@ contract BattleshipGame is IBattleshipGame {
             ? game.participants[0]
             : game.participants[1];
         ticket.transfer(game.winner, 1.95 ether);
-        emit Won(game.winner, _game);
+        emit Won(game.winner, _game, game.winner);
     }
 }

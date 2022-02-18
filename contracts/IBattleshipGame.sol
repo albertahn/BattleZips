@@ -10,11 +10,15 @@ import "./IVerifier.sol";
  * Operates at a 5% margin on winnings (1 XDAI in from 2 players, 1.95 XDAI to winner)
  */
 abstract contract IBattleshipGame is ERC2771Context {
-
-    event Started(uint256 _nonce);
-    event Joined(uint256 _nonce);
-    event Shot(uint256 _game, uint256 _turn, bool _hit);
-    event Won(address _winner, uint256 _nonce);
+    event Started(uint256 _nonce, address _by);
+    event Joined(uint256 _nonce, address _by);
+    event Shot(
+        uint8 _x,
+        uint8 _y,
+        uint256 _game,
+        bool _hit
+    );
+    event Won(address _winner, uint256 _nonce, address _by);
     event Collected(uint256 _amount);
 
     struct Game {

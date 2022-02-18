@@ -1,4 +1,6 @@
 const POLYGON_DAI = '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063' // address of Polygon PoS Dai token
+const RINKEBY_FORWARDER ='0xFD4973FeB2031D4409fB57afEE5dF2051b171104'
+const { addContract } = require('../test/utils/biconomy')
 
 /**
  * Deploy All Contracts
@@ -29,38 +31,43 @@ module.exports = async ({ run, ethers, network, deployments }) => {
     // deploy Battleship Game Contract / Victory token
     const { address: gameAddress } = await deployments.deploy('BattleshipGame', {
         from: operator.address,
-        args: [MUMBAI_FORWARDER, bvAddress, svAddress, ticketAddress],
+        args: [RINKEBY_FORWARDER, bvAddress, svAddress, ticketAddress],
         log: true
     })
     // verify deployed contracts
-    // try {
-    //     await run('verify:verify', { address: bvAddress })
-    // } catch (e) {
-    //     if (!alreadyVerified(e.toString())) throw new Error()
-    // }
-    // console.log('t')
-    // try {
-    //     await run('verify:verify', { address: svAddress })
-    // } catch (e) {
-    //     if (!alreadyVerified(e.toString())) throw new Error()
-    // }
-    // if (network.name !== 'polygon') {
-    //     try {
-    //         await run('verify:verify', { address: ticketAddress })
-    //     } catch (e) {
-    //         if (!alreadyVerified(e.toString())) throw new Error()
-    //     }
-    // }
-    // console.log('r')
-    // try {
-    //     await run('verify:verify', {
-    //         address: gameAddress,
-    //         constructorArguments: [bvAddress, svAddress, ticketAddress]
-    //     })
-    // } catch (e) {
-    //     if (!alreadyVerified(e.toString())) throw new Error()
-    // }
-    // console.log('Deployment and Verification Success')
+    try {
+        await run('verify:verify', { address: bvAddress })
+    } catch (e) {
+        console.log(e)
+        if (!alreadyVerified(e.toString())) throw new Error()
+    }
+    try {
+        await run('verify:verify', { address: svAddress })
+    } catch (e) {
+        console.log(e)
+        if (!alreadyVerified(e.toString())) throw new Error()
+    }
+    if (network.name !== 'polygon') {
+        try {
+            await run('verify:verify', { address: ticketAddress })
+        } catch (e) {
+            console.log(e)
+            if (!alreadyVerified(e.toString())) throw new Error()
+            
+        }
+    }
+    try {
+        await run('verify:verify', {
+            address: gameAddress,
+            constructorArguments: [RINKEBY_FORWARDER, bvAddress, svAddress, ticketAddress]
+        })
+    } catch (e) {
+        console.log(e)
+        if (!alreadyVerified(e.toString())) throw new Error()
+    }
+    // add to biconomy
+    await addContract(gameAddress)
+    console.log('Deployed, Verified, Relay Authorized')
 }
 
 /**
