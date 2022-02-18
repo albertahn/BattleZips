@@ -39,16 +39,14 @@ template PlaceShip(n) {
     for (var i = 0; i < n; i++) {
         boardH[ship[0] + i][ship[1]] += 1;
         var cellVal = boardH[ship[0] + i][ship[1]];
-        // hCollision.in[i] <== cellVal * (cellVal - 1) == 0;
-        hCollision.in[i] <== 1;
+        hCollision.in[i] <-- cellVal * (cellVal - 1) == 0;
     }
 
     /// VERTICAL PLACEMENT COLLISION CHECK ///
     for (var i = 0; i < n; i++) {
         boardV[ship[0]][ship[1] + i] += 1;
         var cellVal = boardV[ship[0]][ship[1] + i];
-        // vCollision.in[i] <== cellVal * (cellVal - 1) == 0;
-        vCollision.in[i] <== 1;
+        vCollision.in[i] <-- cellVal * (cellVal - 1) == 0;
     }
 
     /// MUX TO CHOOSE CONSTRAINT ///
@@ -56,16 +54,15 @@ template PlaceShip(n) {
     collisionMux.c[1] <== vCollision.out;
     collisionMux.s <== ship[2]; // z coordinate as selector for horizontal/ vertical
     collisionMux.out === 1; // expect 1 if all placements have binary values (no collisions, < 2)
-
     /// MUX TO CHOOSE AND OUTPUT NEXT BOARD STATE ///
     // numberify bitmap
     component toNumH = Bits2Num(100); // horizontal board Bits2Num
     component toNumV = Bits2Num(100); // vertical board Bits2Num
     for (var i = 0; i < 100; i++) {
-        toNumH.in[i] <== boardH[i \ 10][i % 10];
-        toNumV.in[i] <== boardV[i \ 10][i % 10];
+        toNumH.in[i] <-- boardH[i \ 10][i % 10];
+        toNumV.in[i] <-- boardV[i \ 10][i % 10];
     }
-    // mux boards to get next state
+    // // mux boards to get next state
     boardMux.c[0] <== toNumH.out;
     boardMux.c[1] <== toNumV.out;
     boardMux.s <== ship[2];
