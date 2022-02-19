@@ -1,6 +1,8 @@
-const POLYGON_DAI = '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063' // address of Polygon PoS Dai token
-const RINKEBY_FORWARDER ='0xFD4973FeB2031D4409fB57afEE5dF2051b171104'
 const { addContract } = require('../test/utils/biconomy')
+const POLYGON_DAI = '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063' // address of Polygon PoS Dai token
+///https://docs.biconomy.io/misc/contract-addresses
+const RINKEBY_FORWARDER ='0xFD4973FeB2031D4409fB57afEE5dF2051b171104'
+const GOERLI_FORWARDER = '0xE041608922d06a4F26C0d4c27d8bCD01daf1f792'
 
 /**
  * Deploy All Contracts
@@ -17,21 +19,11 @@ module.exports = async ({ run, ethers, network, deployments }) => {
         from: operator.address,
         log: true
     })
-    // if not on polygon mainnet deploy custom token to test with
-    // else use live dai token to allow wagering
-    let ticketAddress
-    if (network.name === 'polygon')
-        ticketAddress = POLYGON_DAI
-    else {
-        ({ address: ticketAddress } = await deployments.deploy('Token', {
-            from: operator.address,
-            log: true
-        }))
-    }
+    
     // deploy Battleship Game Contract / Victory token
     const { address: gameAddress } = await deployments.deploy('BattleshipGame', {
         from: operator.address,
-        args: [RINKEBY_FORWARDER, bvAddress, svAddress, ticketAddress],
+        args: [GOERLI_FORWARDER, bvAddress, svAddress],
         log: true
     })
     // verify deployed contracts
@@ -47,19 +39,10 @@ module.exports = async ({ run, ethers, network, deployments }) => {
         console.log(e)
         if (!alreadyVerified(e.toString())) throw new Error()
     }
-    if (network.name !== 'polygon') {
-        try {
-            await run('verify:verify', { address: ticketAddress })
-        } catch (e) {
-            console.log(e)
-            if (!alreadyVerified(e.toString())) throw new Error()
-            
-        }
-    }
     try {
         await run('verify:verify', {
             address: gameAddress,
-            constructorArguments: [RINKEBY_FORWARDER, bvAddress, svAddress, ticketAddress]
+            constructorArguments: [GOERLI_FORWARDER, bvAddress, svAddress]
         })
     } catch (e) {
         console.log(e)

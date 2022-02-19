@@ -19,7 +19,6 @@ abstract contract IBattleshipGame is ERC2771Context {
         bool _hit
     );
     event Won(address _winner, uint256 _nonce, address _by);
-    event Collected(uint256 _amount);
 
     struct Game {
         address[2] participants; // the two players in the game
@@ -34,15 +33,12 @@ abstract contract IBattleshipGame is ERC2771Context {
     uint256 constant HIT_MAX = 17; // number of hits before all ships are sunk
 
     uint256 gameIndex; // current game nonce
-    address operator; // owner
 
     mapping(uint256 => Game) public games; // map game nonce to game data
     mapping(address => uint256) public playing; // map player address to game played
 
     IBoardVerifier bv; // verifier for proving initial board rule compliance
     IShotVerifier sv; // verifier for proving shot hit/ miss
-
-    IERC20 ticket; // token for cost of entry / winner's proceeds
 
     /**
      * Start a new board by uploading a valid board hash
@@ -116,14 +112,6 @@ abstract contract IBattleshipGame is ERC2771Context {
         uint256[2] memory b_1,
         uint256[2] memory c
     ) external virtual;
-
-    /**
-     * Collect accumulated profit from game fee
-     * @dev modifier onlyOperator
-     *
-     * @param _to address - the address the operator wants to receive tokens at
-     */
-    function collectProceeds(address _to) external virtual;
 
     /**
      * Return current game info

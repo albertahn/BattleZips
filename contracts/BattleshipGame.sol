@@ -7,21 +7,10 @@ contract BattleshipGame is IBattleshipGame {
     /// MODIFIERS ///
 
     /**
-     * Ensure only contract owner can collect procedes/ administrate contract
-     */
-    modifier onlyOperator() {
-        require(_msgSender() == operator, "!Operator");
-        _;
-    }
-
-    /**
      * Ensure a message sender has approved ticket erc20 and is not currently playing another game
      */
     modifier canPlay() {
-        require(
-            ticket.allowance(_msgSender(), address(this)) >= 1 ether,
-            "!Tickets"
-        );
+
         require(playing[_msgSender()] == 0, "Reentrant");
         _;
     }
@@ -65,18 +54,14 @@ contract BattleshipGame is IBattleshipGame {
      * @param _forwarder address - the address of the erc2771 trusted forwarder
      * @param _bv address - the address of the initial board validity prover
      * @param _sv address - the address of the shot hit/miss prover
-     * @param _ticket address - the address of the ERC20 token required to be spent to play the game
      */
     constructor(
         address _forwarder,
         address _bv,
-        address _sv,
-        address _ticket
+        address _sv
     ) ERC2771Context(_forwarder) {
         bv = IBoardVerifier(_bv);
         sv = IShotVerifier(_sv);
-        ticket = IERC20(_ticket);
-        operator = _msgSender();
     }
 
     /// MUTABLE FUNCTIONS ///
@@ -88,11 +73,11 @@ contract BattleshipGame is IBattleshipGame {
         uint256[2] memory b_1,
         uint256[2] memory c
     ) external override canPlay {
-        require(
-            bv.verifyProof(a, [b_0, b_1], c, [_boardHash]),
-            "Invalid Board Config!"
-        );
-        ticket.transferFrom(_msgSender(), address(this), 1 ether);
+        // require(
+        //     bv.verifyProof(a, [b_0, b_1], c, [_boardHash]),
+        //     "Invalid Board Config!"
+        // );
+        // ticket.transferFrom(_msgSender(), address(this), 1 ether);
         gameIndex++;
         games[gameIndex].participants[0] = _msgSender();
         games[gameIndex].boards[0] = _boardHash;
@@ -108,11 +93,11 @@ contract BattleshipGame is IBattleshipGame {
         uint256[2] memory b_1,
         uint256[2] memory c
     ) external override canPlay joinable(_game) {
-        require(
-            bv.verifyProof(a, [b_0, b_1], c, [_boardHash]),
-            "Invalid Board Config!"
-        );
-        ticket.transferFrom(_msgSender(), address(this), 1 ether);
+        // require(
+        //     bv.verifyProof(a, [b_0, b_1], c, [_boardHash]),
+        //     "Invalid Board Config!"
+        // );
+        // ticket.transferFrom(_msgSender(), address(this), 1 ether);
         games[_game].participants[1] = _msgSender();
         games[_game].boards[1] = _boardHash;
         playing[_msgSender()] = _game;
@@ -148,15 +133,15 @@ contract BattleshipGame is IBattleshipGame {
         assembly {
             hitInt := _hit
         }
-        require(
-            sv.verifyProof(
-                a,
-                [b_0, b_1],
-                c,
-                [boardHash, shot[0], shot[1], hitInt]
-            ),
-            "Invalid turn proof"
-        );
+        // require(
+        //     sv.verifyProof(
+        //         a,
+        //         [b_0, b_1],
+        //         c,
+        //         [boardHash, shot[0], shot[1], hitInt]
+        //     ),
+        //     "Invalid turn proof"
+        // );
         // update game state
         game.hits[game.nonce - 1] = _hit;
         if (_hit) game.hitNonce[(game.nonce - 1) % 2]++;
@@ -173,12 +158,6 @@ contract BattleshipGame is IBattleshipGame {
             game.shots[game.nonce] = _next;
             game.nonce++;
         }
-    }
-
-    function collectProceeds(address _to) external override onlyOperator {
-        uint256 balance = ticket.balanceOf(address(this));
-        emit Collected(balance);
-        ticket.transfer(_to, balance);
     }
 
     /// VIEWABLE FUNCTIONS ///
@@ -219,7 +198,7 @@ contract BattleshipGame is IBattleshipGame {
         game.winner = game.hitNonce[0] == HIT_MAX
             ? game.participants[0]
             : game.participants[1];
-        ticket.transfer(game.winner, 1.95 ether);
+        // ticket.transfer(game.winner, 1.95 ether);
         emit Won(game.winner, _game, game.winner);
     }
 }
