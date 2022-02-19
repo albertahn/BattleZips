@@ -14,7 +14,7 @@ template board() {
     signal input hash;
 
     var lengths[5] = [5, 4, 3, 3, 2]; // length of each ship in order used
-    
+
     /// RANGE CHECK ///
     component rangeCheck[5];
     for (var i = 0; i < 5; i++) {
@@ -30,9 +30,11 @@ template board() {
     var boardNum = 0;
     for (var i = 0; i < 5; i++) {
         placeCheck[i] = PlaceShip(5);
-    //     placeCheck[i].ship <== ships[i];
-    //     placeCheck[i].boardIn <== boardNum;
-    //     boardNum = placeCheck[i].boardOut;
+        placeCheck[i].ship[0] <== ships[i][0];
+        placeCheck[i].ship[1] <== ships[i][1];
+        placeCheck[i].ship[2] <== ships[i][2];
+        placeCheck[i].boardIn <== boardNum;
+        boardNum = placeCheck[i].boardOut;
     }
 
     /// HASH INTEGRITY CHECK ///

@@ -110,7 +110,7 @@ describe('Play Battleship on-chain', async () => {
                 ...proofArgs //pi_a, pi_b_0, pi_b_1, pi_c
             )).wait()
         })
-        it("Join an existing game", async () => {
+        xit("Join an existing game", async () => {
             // board starting verification proof public / private inputs
             const input = {
                 ships: boards.bob,
@@ -136,15 +136,15 @@ describe('Play Battleship on-chain', async () => {
                 ...proofArgs //pi_a, pi_b_0, pi_b_1, pi_c
             ))
         })
-        it("opening shot", async () => {
+        xit("opening shot", async () => {
             await (await game.connect(alice).firstTurn(1, [1, 0])).wait()
         })
-        it('Prove hit/ miss for 32 turns', async () => {
+        xit('Prove hit/ miss for 32 turns', async () => {
             for (let i = 1; i <= 16; i++) {
                 await simulateTurn(i)
             }
         })
-        it('Alice wins and receives award on sinking all of Bob\'s ships', async () => {
+        xit('Alice wins and receives award on sinking all of Bob\'s ships', async () => {
             // bob's shot hit/miss integrity proof public / private inputs
             const input = {
                 ships: boards.bob,
