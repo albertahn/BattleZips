@@ -73,7 +73,6 @@ function buildProofArgs(proof) {
  * @returns {Object} :
  *  - sv: ShotVerifier contract object
  *  - bv: BoardVerifier contract object
- *  - token: Mock ERC20 contract object
  *  - game: ZK-Battleship contract object
  *  - mimcSponge: initialized MiMC Sponge ZK-Friendly hash function object from circomlibjs
  *  - boardHashes: hashed versions of alice/ bob boards
@@ -85,22 +84,16 @@ async function initialize(forwarder) {
     const sv = await svFactory.deploy()
     const bvFactory = await ethers.getContractFactory('BoardVerifier')
     const bv = await bvFactory.deploy()
-    // deploy ticket token
-    const tokenFactory = await ethers.getContractFactory('Token')
-    const token = await tokenFactory.deploy()
+    // initialize trusted forwarder
+    if (forwarder === ethers.constants.AddressZero) {
+        const forwarderFactory = await ethers.getContractFactory('Forwarder');
+        forwarder = await forwarderFactory.deploy();
+    } else {
+        forwarder =await (await ethers.getContractFactory('Forwarder')).attach(forwarder)
+    }
     // deploy game
     const gameFactory = await ethers.getContractFactory('BattleshipGame')
-    const game = await gameFactory.deploy(forwarder, bv.address, sv.address, token.address)
-
-    // set players
-    const signers = await ethers.getSigners()
-    const alice = signers[1]
-    const bob = signers[2]
-    // give players tickets and allow game contract to spend
-    await (await token.connect(alice).mint(alice.address, one)).wait()
-    await (await token.connect(alice).approve(game.address, one)).wait()
-    await (await token.connect(bob).mint(bob.address, one)).wait()
-    await (await token.connect(bob).approve(game.address, one)).wait()
+    const game = await gameFactory.deploy(forwarder.address, bv.address, sv.address)
     // instantiate mimc sponge on bn254 curve + store ffjavascript obj reference
     const mimcSponge = await buildMimcSponge()
     // store board hashes for quick use
@@ -108,7 +101,7 @@ async function initialize(forwarder) {
         alice: await mimcSponge.multiHash(boards.alice.flat()),
         bob: await mimcSponge.multiHash(boards.bob.flat())
     }
-    return { sv, bv, token, game, mimcSponge, boardHashes, F: mimcSponge.F }
+    return { sv, bv, forwarder, game, mimcSponge, boardHashes, F: mimcSponge.F }
 }
 
 // inline ephemeral logging

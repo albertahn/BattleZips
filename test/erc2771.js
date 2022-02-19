@@ -17,11 +17,8 @@ describe("Metatransaction integration testing", () => {
         operator = signers[0];
         alice = signers[1];
         bob = signers[2];
-        // initialize trusted forwarder
-        const forwarderFactory = await ethers.getContractFactory('Forwarder');
-        forwarder = await forwarderFactory.deploy();
         // initialize and store 
-        ({ game, F, boardHashes } = await initialize(forwarder.address));
+        ({ game, F, boardHashes, forwarder } = await initialize(ethers.constants.AddressZero));
     })
     it('Perform a snark action through meta-transaction signature + relay', async () => {
         // board starting verification proof public / private inputs

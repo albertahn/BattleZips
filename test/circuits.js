@@ -224,7 +224,7 @@ describe('Test circuits', async () => {
                     shot,
                     hit
                 })
-                await shotCircuit.assertOut(witness, { out: hit })
+                await shotCircuit.assertOut(witness, {})
             })
             it("Prove valid turn 2: hit off head on z = 0", async () => {
                 const ships = [
@@ -243,7 +243,7 @@ describe('Test circuits', async () => {
                     shot,
                     hit
                 })
-                await shotCircuit.assertOut(witness, { out: hit })
+                await shotCircuit.assertOut(witness, {})
             })
             it("Prove valid turn 3: hit off head on z = 1", async () => {
                 const ships = [
@@ -262,7 +262,7 @@ describe('Test circuits', async () => {
                     shot,
                     hit
                 })
-                await shotCircuit.assertOut(witness, { out: hit })
+                await shotCircuit.assertOut(witness, {})
             })
             it("Prove valid turn 4: miss with no collision", async () => {
                 const ships = [
@@ -281,7 +281,7 @@ describe('Test circuits', async () => {
                     shot,
                     hit
                 })
-                await shotCircuit.assertOut(witness, { out: hit })
+                await shotCircuit.assertOut(witness, {})
             })
             it("Prove valid turn 5: horizontal muxxed miss with vertical hit", async () => {
                 // demonstrate miss computation even if z=1 collision when z = 0
@@ -301,7 +301,7 @@ describe('Test circuits', async () => {
                     shot,
                     hit
                 })
-                await shotCircuit.assertOut(witness, { out: hit })
+                await shotCircuit.assertOut(witness, {})
             })
             it("Prove valid turn 6: vertical muxxed miss with horizontal hit", async () => {
                 // demonstrate miss computation even if z=0 collision when z = 1
@@ -321,7 +321,7 @@ describe('Test circuits', async () => {
                     shot,
                     hit
                 })
-                await shotCircuit.assertOut(witness, { out: hit })
+                await shotCircuit.assertOut(witness, { })
             })
         })
         describe('Out of Bound Shot Checks', async () => {

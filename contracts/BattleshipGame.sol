@@ -2,15 +2,15 @@
 pragma solidity >=0.8.11;
 
 import "./IBattleshipGame.sol";
+import "hardhat/console.sol";
 
 contract BattleshipGame is IBattleshipGame {
     /// MODIFIERS ///
 
     /**
-     * Ensure a message sender has approved ticket erc20 and is not currently playing another game
+     * Ensure a message sender is not currently playing another game
      */
     modifier canPlay() {
-
         require(playing[_msgSender()] == 0, "Reentrant");
         _;
     }
@@ -73,11 +73,10 @@ contract BattleshipGame is IBattleshipGame {
         uint256[2] memory b_1,
         uint256[2] memory c
     ) external override canPlay {
-        // require(
-        //     bv.verifyProof(a, [b_0, b_1], c, [_boardHash]),
-        //     "Invalid Board Config!"
-        // );
-        // ticket.transferFrom(_msgSender(), address(this), 1 ether);
+        require(
+            bv.verifyProof(a, [b_0, b_1], c, [_boardHash]),
+            "Invalid Board Config!"
+        );
         gameIndex++;
         games[gameIndex].participants[0] = _msgSender();
         games[gameIndex].boards[0] = _boardHash;
@@ -93,11 +92,10 @@ contract BattleshipGame is IBattleshipGame {
         uint256[2] memory b_1,
         uint256[2] memory c
     ) external override canPlay joinable(_game) {
-        // require(
-        //     bv.verifyProof(a, [b_0, b_1], c, [_boardHash]),
-        //     "Invalid Board Config!"
-        // );
-        // ticket.transferFrom(_msgSender(), address(this), 1 ether);
+        require(
+            bv.verifyProof(a, [b_0, b_1], c, [_boardHash]),
+            "Invalid Board Config!"
+        );
         games[_game].participants[1] = _msgSender();
         games[_game].boards[1] = _boardHash;
         playing[_msgSender()] = _game;
@@ -133,15 +131,15 @@ contract BattleshipGame is IBattleshipGame {
         assembly {
             hitInt := _hit
         }
-        // require(
-        //     sv.verifyProof(
-        //         a,
-        //         [b_0, b_1],
-        //         c,
-        //         [boardHash, shot[0], shot[1], hitInt]
-        //     ),
-        //     "Invalid turn proof"
-        // );
+        require(
+            sv.verifyProof(
+                a,
+                [b_0, b_1],
+                c,
+                [boardHash, shot[0], shot[1], hitInt]
+            ),
+            "Invalid turn proof"
+        );
         // update game state
         game.hits[game.nonce - 1] = _hit;
         if (_hit) game.hitNonce[(game.nonce - 1) % 2]++;
@@ -198,7 +196,6 @@ contract BattleshipGame is IBattleshipGame {
         game.winner = game.hitNonce[0] == HIT_MAX
             ? game.participants[0]
             : game.participants[1];
-        // ticket.transfer(game.winner, 1.95 ether);
         emit Won(game.winner, _game, game.winner);
     }
 }

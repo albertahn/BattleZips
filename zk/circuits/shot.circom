@@ -16,7 +16,6 @@ template shot() {
     signal input hash; // mimcSponge hash on each element of coordinate (15x)
     signal input shot[2]; // x, y to hitscan
     signal input hit; // public assertion of hit or miss for coordinates
-    signal output out; // return computed hit as output
 
     signal _hit[5]; // intermediary OR'd hit registry
     signal _ors[4]; // or result registry
@@ -62,7 +61,6 @@ template shot() {
     }
     /// HIT ASSERTION CHECK ///
     hit === ors[3].out;
-    out <== ors[3].out;
 }
 
 component main { public [hash, shot, hit] } = shot();

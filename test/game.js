@@ -11,7 +11,7 @@ const {
 
 describe('Play Battleship on-chain', async () => {
     let operator, alice, bob // players
-    let bv, sv, token, game // contracts
+    let game // contracts
     let F // ffjavascript BN254 construct
     let boardHashes // store hashed board for alice and bob
 
@@ -28,8 +28,8 @@ describe('Play Battleship on-chain', async () => {
         let input = {
             ships: boards.bob,
             hash: F.toObject(boardHashes.bob),
-            coords: shots.alice[aliceNonce - 1],
-            hit: 1
+            shot: shots.alice[aliceNonce - 1],
+            hit: 1,
         }
         // compute witness and run through groth16 circuit for proof / signals
         let { proof, publicSignals } = await snarkjs.groth16.fullProve(
@@ -41,7 +41,7 @@ describe('Play Battleship on-chain', async () => {
         await snarkjs.groth16.verify(verificationKeys.shot, publicSignals, proof)
         // prove alice's registered shot hit, and register bob's next shot
         let proofArgs = buildProofArgs(proof)
-        let tx = await (await game.connect(bob).turn(
+        tx = await (await game.connect(bob).turn(
             1, // game id
             true, // hit bool
             shots.bob[aliceNonce - 1], // returning fire / next shot to register (not part of proof)
@@ -53,15 +53,15 @@ describe('Play Battleship on-chain', async () => {
         input = {
             ships: boards.alice,
             hash: F.toObject(boardHashes.alice),
-            coords: shots.bob[aliceNonce - 1],
+            shot: shots.bob[aliceNonce - 1],
             hit: 0
-        }
-            // compute witness and run through groth16 circuit for proof / signals
-            ; ({ proof, publicSignals } = await snarkjs.groth16.fullProve(
-                input,
-                'zk/shot_js/shot.wasm',
-                'zk/zkey/shot_final.zkey'
-            ))
+        };
+        // compute witness and run through groth16 circuit for proof / signals
+        ({ proof, publicSignals } = await snarkjs.groth16.fullProve(
+            input,
+            'zk/shot_js/shot.wasm',
+            'zk/zkey/shot_final.zkey'
+        ));
         // verify proof locally
         await snarkjs.groth16.verify(verificationKeys.shot, publicSignals, proof)
         // prove bob's registered shot missed, and register alice's next shot
@@ -81,7 +81,7 @@ describe('Play Battleship on-chain', async () => {
         alice = signers[1];
         bob = signers[2];
         // initialize and store 
-        ({ bv, sv, token, game, F, boardHashes } = await initialize(ethers.constants.AddressZero))
+        ({ bv, sv, game, F, boardHashes } = await initialize(ethers.constants.AddressZero))
     })
 
     describe("Play game to completion", async () => {
@@ -110,7 +110,7 @@ describe('Play Battleship on-chain', async () => {
                 ...proofArgs //pi_a, pi_b_0, pi_b_1, pi_c
             )).wait()
         })
-        xit("Join an existing game", async () => {
+        it("Join an existing game", async () => {
             // board starting verification proof public / private inputs
             const input = {
                 ships: boards.bob,
@@ -136,20 +136,20 @@ describe('Play Battleship on-chain', async () => {
                 ...proofArgs //pi_a, pi_b_0, pi_b_1, pi_c
             ))
         })
-        xit("opening shot", async () => {
+        it("opening shot", async () => {
             await (await game.connect(alice).firstTurn(1, [1, 0])).wait()
         })
-        xit('Prove hit/ miss for 32 turns', async () => {
+        it('Prove hit/ miss for 32 turns', async () => {
             for (let i = 1; i <= 16; i++) {
                 await simulateTurn(i)
             }
         })
-        xit('Alice wins and receives award on sinking all of Bob\'s ships', async () => {
+        it('Alice wins on sinking all of Bob\'s ships', async () => {
             // bob's shot hit/miss integrity proof public / private inputs
             const input = {
                 ships: boards.bob,
                 hash: F.toObject(boardHashes.bob),
-                coords: shots.alice[16],
+                shot: shots.alice[16],
                 hit: 1
             }
             // compute witness and run through groth16 circuit for proof / signals
