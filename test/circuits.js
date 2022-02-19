@@ -31,12 +31,19 @@ describe('Test circuits', async () => {
         //     ["0", "0", "0"]
         // ]
         const badBoard = [
-            [1, 1, 1],
-            [4, 2, 0],
-            [7, 2, 1],
-            [6, 7, 0],
-            [8, 6, 0]
+            [9, 0, 1],
+            [9, 5, 1],
+            [7, 9, 0],
+            [6, 8, 0],
+            [7, 7, 0]
         ]
+        // const badBoard = [
+        //     [1, 1, 1],
+        //     [4, 2, 0],
+        //     [7, 2, 1],
+        //     [6, 7, 0],
+        //     [8, 6, 0]
+        // ]
         const shipHash = mimcSponge.multiHash(badBoard.flat())
         const circuit = await wasm_tester(path.resolve('zk/circuits/board.circom'))
         const witness = await circuit.calculateWitness({

@@ -11,22 +11,20 @@ include "../../../node_modules/circomlib/circuits/comparators.circom";
 template ShipRange(n) {
     signal input ship[3]; // x, y, z
     signal isOk[2]; // horizontal and vertical range compliance
-
     component lt[4];
     component muxOk = Mux1();
 
     /// HORIZONTAL ///
     // x + n < 10
     lt[0] = LessThan(4); // 4 bit number since max is 10
-    lt[0].in[0] <== ship[0] + n;
-    lt[0].in[1] <== 10; 
+    lt[0].in[0] <== ship[0] + (n - 1); // n is length of ship; -1 to account for cell 0
+    lt[0].in[1] <== 10;
     // y < 10
     lt[1] = LessThan(4);
     lt[1].in[0] <== ship[1];
     lt[1].in[1] <== 10;
     // make bool for range complaince to constain
     isOk[0] <== lt[0].out * lt[1].out;
-
     /// VERTICAL (z = 1) ///
     // x < 10
     lt[2] = LessThan(4);
@@ -34,7 +32,7 @@ template ShipRange(n) {
     lt[2].in[1] <== 10;
     // y + n < 10
     lt[3] = LessThan(4);
-    lt[3].in[0] <== ship[1] + n;
+    lt[3].in[0] <== ship[1] + (n - 1);
     lt[3].in[1] <== 10;
     // make bool for range complaince to constain
     isOk[1] <== lt[2].out * lt[3].out;
@@ -47,6 +45,7 @@ template ShipRange(n) {
     muxOk.s <== ship[2];
     // constrain range
     muxOk.out === 1;
+    log(9999);
 }
 
 // component main = ShipRange(5);
