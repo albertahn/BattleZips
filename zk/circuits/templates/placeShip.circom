@@ -4,13 +4,12 @@ include "../../../node_modules/circomlib/circuits/mux1.circom";
 include "../../../node_modules/circomlib/circuits/bitify.circom";
 
 /*
- Place a ship on a board while ensuring no collisions
- Input bits2num'd start board state, output bits2num'd end board state
- Expects previous safety checks and will not perform them here for resource preservation
- @param n - the length of the ship
+    Place a ship on a board while ensuring no collisions
+    Input bits2num'd start board state, output bits2num'd end board state
+    Expects previous safety checks and will not perform them here for resource preservation
+    @param n - the length of the ship
 */
 template PlaceShip(n) {
-
     signal input boardIn; // numerical representation of board bitmap before ship placement
     signal input ship[3]; // x, y, z of ships
     signal output boardOut; // numerical representation of board bitmap after ship placement
@@ -43,7 +42,6 @@ template PlaceShip(n) {
     for (var i = 0; i < n; i++) {
         boardV[ship[0]][ship[1] + i] += 1;
         var cellVal = boardV[ship[0]][ship[1] + i];
-        log(cellVal * (cellVal - 1) == 0);
         vCollision.in[i] <-- cellVal * (cellVal - 1) == 0;
     }
     /// MUX TO CHOOSE CONSTRAINT ///
@@ -65,5 +63,3 @@ template PlaceShip(n) {
     boardMux.s <== ship[2];
     boardOut <== boardMux.out;
 }
-
-// component main = PlaceShip(5);

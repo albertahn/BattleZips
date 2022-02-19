@@ -5,9 +5,9 @@ include "./templates/placeShip.circom";
 include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../node_modules/circomlib/circuits/mimcsponge.circom";
 
-/**
- * Validate whether or not a ship placement on a board is valid
- */
+/*
+    Validate whether or not a ship placement on a board is valid
+*/
 template board() {
     signal input ships[5][3];
     signal input hash;
@@ -28,7 +28,7 @@ template board() {
     component placeCheck[5];
     var boardNum = 0;
     for (var i = 0; i < 5; i++) {
-        placeCheck[i] = PlaceShip(5);
+        placeCheck[i] = PlaceShip(lengths[i]);
         placeCheck[i].ship[0] <== ships[i][0];
         placeCheck[i].ship[1] <== ships[i][1];
         placeCheck[i].ship[2] <== ships[i][2];

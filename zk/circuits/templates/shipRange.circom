@@ -45,7 +45,4 @@ template ShipRange(n) {
     muxOk.s <== ship[2];
     // constrain range
     muxOk.out === 1;
-    log(9999);
 }
-
-// component main = ShipRange(5);
