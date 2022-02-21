@@ -1,7 +1,10 @@
 # BattleZips
 ### Zero Knowledge Battleship Game on EVM-compatible chains
-
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
+
+<p align="center">
+  <img width="460" height="460" src="battlezips.png">
+</p>
 
 Forked from 2020 `zkbattleship-circuit` by [tommymsz006](https://github.com/tommymsz006/zkbattleship), prototype [Battleship](https://en.wikipedia.org/wiki/Battleship_(game)) game built on GROTH16 proofs for the purpose of demonstrating an arbitrary imperfect information game that would otherwise be impossible in a decentralized context. It employs circom/circomlib to generate two separate circuits. The first circuit "board.circom" accepts board positions as a private input and their hash as a public input. It serves as a proof that a public hash is of an arrangement of ships on the board in the game is valid (within 10x10 range, does not collide with other ships, etc). Once run through snarkjs, we provide BattleshipGame.sol function 'joinGame' the board hash as public input and the generated proof. The smart contract stores the hash for future use. 
 
@@ -11,7 +14,7 @@ circom_tester was employed to test all edge cases of the shot and board proofs. 
 
 In order to be considered an example of a production ready software stack, BattleZips still needs to iterate to create a maximally cost-efficient dApp. In BattleZips v0.0.2, board and shot proofs are exchanged on-chain. Our next iteration will use state channels in the form of socket.io to allow two players of a game to use babyjub keys to establish an ECDH shared secret by which they can send their proofs back and forth to eachother. Once an end state is reached, the entire game state is to be stored in a merkle tree rolled up on-chain in a single transaction. In even more future versions, upgrading our state channels to be [WebRTC signalling using IPFS](https://github.com/cretz/webrtc-ipfs-signaling) is also on the radar. Finally, the project will be documented and republished open-source as a cryptozombies analogue for all things zero knowledge.
 
-This project is WIP. Please contact @jp4g_ on twitter or open issues with questions/ comments/ concerns
+This project is WIP. Please contact @jp4g_ on twitter or open issues with questions/ comments/ concerns. [Presented on 2/20/22 at EthDenver](https://www.twitch.tv/videos/1304742395?t=02h18m52s)
 
 ## Steps to run and install demo (requires Unix)
 0. [Ensure Circom 2.x.x is installed locally](https://github.com/iden3/circom/blob/master/mkdocs/docs/getting-started/installation.md)
