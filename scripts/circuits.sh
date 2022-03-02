@@ -6,7 +6,7 @@ set -e
 # ... circuit-specific stuff
 
 # if zk/zkey does not exist, make folder
-# [ -d zk/zkey ] || mkdir zk/zkey
+[ -d zk/zkey ] || mkdir zk/zkey
 
 # Compile circuits
 circom zk/circuits/board.circom -o zk/ --r1cs --wasm
