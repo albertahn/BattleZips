@@ -32,7 +32,7 @@ describe('Test circuits', async () => {
                     ships,
                     hash: F.toObject(hash)
                 })
-                await shotCircuit.assertOut(witness, {})
+                await boardCircuit.assertOut(witness, {})
             })
             it("Prove valid board 2", async () => {
                 const ships = [
@@ -47,7 +47,7 @@ describe('Test circuits', async () => {
                     ships,
                     hash: F.toObject(hash)
                 })
-                await shotCircuit.assertOut(witness, {})
+                await boardCircuit.assertOut(witness, {})
             })
             it("Prove valid board 3", async () => {
                 const ships = [
@@ -62,7 +62,7 @@ describe('Test circuits', async () => {
                     ships,
                     hash: F.toObject(hash)
                 })
-                await shotCircuit.assertOut(witness, {})
+                await boardCircuit.assertOut(witness, {})
             })
         })
         describe('Out of Bound Checks', async () => {
