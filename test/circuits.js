@@ -293,7 +293,7 @@ describe('Test circuits', async () => {
                     [3, 8, 0]
                 ]
                 const hash = await mimcSponge.multiHash(ships.flat())
-                const shot = [2, 5]
+                const shot = [2, 1]
                 const hit = 0
                 const witness = await shotCircuit.calculateWitness({
                     ships,
@@ -474,7 +474,7 @@ describe('Test circuits', async () => {
                     [3, 8, 0]
                 ]
                 const hash = await mimcSponge.multiHash(ships.flat())
-                const shot = [2, 5]
+                const shot = [2, 1]
                 const hit = 1
                 try {
                     await shotCircuit.calculateWitness({
