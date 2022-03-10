@@ -16,8 +16,10 @@ In order to be considered an example of a production ready software stack, Battl
 
 This project is WIP. Please contact @jp4g_ on twitter or open issues with questions/ comments/ concerns. [Presented on 2/20/22 at EthDenver](https://www.twitch.tv/videos/1304742395?t=02h18m52s)
 
-## Steps to run and install demo (requires Unix)
-0. [Ensure Circom 2.x.x is installed locally](https://github.com/iden3/circom/blob/master/mkdocs/docs/getting-started/installation.md)
+## Steps (requires Linux/ OS X)
+Since compatibility is a common question, M1 chips will outperform the expected wait times on ptau and setup
+
+### 0. [Ensure Circom 2.x.x is installed locally](https://github.com/iden3/circom/blob/master/mkdocs/docs/getting-started/installation.md)
 ```
 curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
 git clone https://github.com/iden3/circom.git
@@ -26,25 +28,45 @@ cargo build --release
 cargo install --path circom
 cd ..
 ```
-1. run POT15 ceremony (⏰ expected 10 minute run time ⏰)
+### 1. run POT15 ceremony (⏰ expected 10 minute run time ⏰)
 ```
 yarn ptau
 ```
-2. Build zkeys and verification keys for each circuit, then export to Solidity contract (⌛ expected 3 minute run time ⌛)
+### 2. Build zkeys and verification keys for each circuit, then export to Solidity contract (⌛ expected 3 minute run time ⌛)
 ```
 yarn setup
 ```
-3. Add mnemonic, infura key to .env
+### 3. Add mnemonic, infura key to .env
 ```
 MNEMONIC=word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12
 INFURA=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
-4. Test local demonstration of full battleship game driven by ZK-Snarks
+### 4. Use entire local test suite (circom_tester, snarkjs integration testing, erc2771 integration testing)
 ```
 yarn hardhat test
 ```
-5. Test on-chain demonstration of full battleship game driven by ZK-Snarks (example goerli)
-```
-yarn hardhat test --network goerli
-```
+### 5. Test on-chain demonstration of full battleship game driven by ZK-Snarks (example goerli)
 Requires sufficient funding in accounts m/44'/60'/0'/0 - m/44'/60'/0'/2 to test live
+```
+yarn hardhat test test/game.js --network goerli
+```
+### 6. Add block explorer api credentials to .env
+```
+ETHERSCAN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+POLYGONSCAN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+### 7. OPTIONAL: Add biconomy api credentials to .env
+api credential will need to be manually changed for each network deployed to
+```
+BICONOMY_AUTH=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX # global account credential
+BICONOMY_API=XXXXXXXXX.XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX # network-specific dApp credential
+```
+### 8. Deploy and publish all assets for BattleZips Zero Knowledge functionality
+ * Deploys `BoardVerifier.sol`, `ShotVerifier.sol`, and `BattleshipGame.sol` to a configured network
+ * Connects `BattleshipGame.sol` to Biconomy's minimal trusted forwarder contract if one is known
+ * Verifies contracts on block explorer upon deployment for etherscan and polygonscan compatible networks
+ * Authenticates and initializes `BattleshipGame.sol` in Biconomy's API to begin gasless transaction relays
+ * Hosts `*_verification_key.json`, `*.wasm`, and `*_final.zkey` files on IPFS for `board.circom` and `shot.circom` on client side
+```
+yarn deploy:mumbai
+```

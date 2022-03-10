@@ -5,6 +5,7 @@
   "main": "hardhat.config.js",
   "scripts": {
     "test": "yarn hardhat test",
+    "deploy:mumbai": "yarn hardhat deploy --network polygonMumbai",
     "ptau": "./scripts/ptau.sh",
     "setup": "./scripts/circuits.sh"
   },
