@@ -1,15 +1,18 @@
-const { addContract } = require('../test/utils/biconomy')
-const POLYGON_DAI = '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063' // address of Polygon PoS Dai token
-///https://docs.biconomy.io/misc/contract-addresses
-const RINKEBY_FORWARDER ='0xFD4973FeB2031D4409fB57afEE5dF2051b171104'
-const GOERLI_FORWARDER = '0xE041608922d06a4F26C0d4c27d8bCD01daf1f792'
+require('dotenv').config()
+const { ethers } = require('hardhat');
+const { addContract, Forwarders } = require('../test/utils/biconomy')
+const ipfsApi = require('ipfs-api')
+const fs = require('fs')
+
 
 /**
  * Deploy All Contracts
  */
 module.exports = async ({ run, ethers, network, deployments }) => {
+
     // get deploying account
     const [operator] = await ethers.getSigners();
+
     // deploy verifiers
     const { address: bvAddress } = await deployments.deploy('BoardVerifier', {
         from: operator.address,
@@ -19,38 +22,38 @@ module.exports = async ({ run, ethers, network, deployments }) => {
         from: operator.address,
         log: true
     })
-    
+
+    // select forwarder
+    const chainId = ethers.provider._network.chainId
+    const forwarder = Forwarders[chainId] ? Forwarders[chainId] : ethers.constants.AddressZero
+
     // deploy Battleship Game Contract / Victory token
     const { address: gameAddress } = await deployments.deploy('BattleshipGame', {
         from: operator.address,
-        args: [GOERLI_FORWARDER, bvAddress, svAddress],
+        args: [forwarder, bvAddress, svAddress],
         log: true
     })
+
     // verify deployed contracts
-    try {
-        await run('verify:verify', { address: bvAddress })
-    } catch (e) {
-        console.log(e)
-        if (!alreadyVerified(e.toString())) throw new Error()
-    }
-    try {
-        await run('verify:verify', { address: svAddress })
-    } catch (e) {
-        console.log(e)
-        if (!alreadyVerified(e.toString())) throw new Error()
-    }
-    try {
-        await run('verify:verify', {
-            address: gameAddress,
-            constructorArguments: [GOERLI_FORWARDER, bvAddress, svAddress]
-        })
-    } catch (e) {
-        console.log(e)
-        if (!alreadyVerified(e.toString())) throw new Error()
-    }
+    await verifyEtherscan(bvAddress, svAddress, forwarder, gameAddress)
+
     // add to biconomy
-    await addContract(gameAddress)
-    console.log('Deployed, Verified, Relay Authorized')
+    // will skip biconomy enrollment if forwarder address is 0 or biconomy api not provided
+    // will skip if not a supported network
+    // biconomy api will change depending on network and must manually be updated in .env :(
+    const { BICONOMY_AUTH, BICONOMY_API } = process.env
+    if (BICONOMY_API === undefined || BICONOMY_AUTH == undefined)
+        console.log('Biconomy API keys not provided, skipping')
+    else if (!Object.keys(Forwarders).includes(chainId.toString()))
+        console.log('Skipping Biconomy integration for unsupported network')
+    else await addContract(gameAddress)
+
+    // add circuit files to ipfs if not hardhat
+    if (chainId !== 31337) await ipfsDeploy()
+    else console.log('Skipping IPFS circuit publication for hardhat network')
+
+    // complete
+    console.log(`BattleZips Deployment Completed Successfully on chain ${ethers.provider._network.chainId}`)
 }
 
 /**
@@ -63,4 +66,78 @@ const alreadyVerified = (err) => {
         || err.includes('Contract source code already verified')
 }
 
-module.exports.tags = ['Verifier']
+/**
+ * Deploy circuit files to IPFS and log their CID's to terminal
+ * @dev includes return of cids but is not used
+ */
+const ipfsDeploy = async () => {
+    // get files generated from `yarn setup` as buffers
+    const files = [
+        {
+            verification_key: Buffer.from(fs.readFileSync('zk/board_verification_key.json')),
+            zkey: Buffer.from(fs.readFileSync('zk/zkey/board_final.zkey')),
+            circuit: Buffer.from(fs.readFileSync('zk/board_js/board.wasm'))
+        },
+        {
+            verification_key: Buffer.from(fs.readFileSync('zk/shot_verification_key.json')),
+            zkey: Buffer.from(fs.readFileSync('zk/zkey/shot_final.zkey')),
+            circuit: Buffer.from(fs.readFileSync('zk/shot_js/shot.wasm'))
+        }
+    ]
+    // deploy files to ipfs and log CID paths
+    const ipfs = ipfsApi('ipfs.infura.io', '5001', { protocol: 'https' })
+    const labels = ['Board', 'Hash']
+    console.log(`\nPublishing circuit files to IPFS`)
+    console.log('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=')
+    for (let i = 0; i < files.length; i++) {
+        const cids = {
+            verification_key: (await ipfs.files.add(files[i].verification_key))[0].path,
+            zkey: (await ipfs.files.add(files[i].zkey))[0].path,
+            circuit: (await ipfs.files.add(files[i].circuit))[0].path
+        }
+        console.log(`\n${labels[i]} verification key CID: ${cids.verification_key}`)
+        console.log(`${labels[i]} zkey CID: ${cids.zkey}`)
+        console.log(`${labels[i]} circuit wasm CID: ${cids.circuit}`)
+    }
+}
+
+/**
+ * Verify contract on Etherscan or Polygonscan block explorers if possible
+ * @notice requires ETHERSCAN and POLYGONSCAN in .env defined for block explorer api access
+ * @notice I have had bad luck with rinkeby, goerli and polygonscan will for sure work
+ * 
+ * @param {string} bvAddress - the address of the deployed board verifier contract
+ * @param {string} svAddress - the address of the deployed shot verifier contract
+ * @param {string} forwarder - the address of the game contract's minimal trusted forwarder
+ * @param {string} gameAddress - the address of the deployed BattleshipGame contract
+ */
+const verifyEtherscan = async (bvAddress, svAddress, forwarder, gameAddress) => {
+    // check if 
+    const chainId = ethers.provider._network.chainId
+    const chains = [1, 4, 5, 42, 137, 80001]
+    if (!chains.includes(chainId) && !chains.includes(chainId)) {
+        console.log('Skipping block explorer verification for unsupported network')
+        return
+    }
+    try {
+        await run('verify:verify', { address: bvAddress })
+    } catch (e) {
+        if (!alreadyVerified(e.toString())) throw new Error()
+        else console.log('=-=-=-=-=\nBoardVerifier.sol already verified\n=-=-=-=-=')
+    }
+    try {
+        await run('verify:verify', { address: svAddress })
+    } catch (e) {
+        if (!alreadyVerified(e.toString())) throw new Error()
+        else console.log('=-=-=-=-=\nShotVerifier.sol already verified\n=-=-=-=-=')
+    }
+    try {
+        await run('verify:verify', {
+            address: gameAddress,
+            constructorArguments: [forwarder, bvAddress, svAddress]
+        })
+    } catch (e) {
+        if (!alreadyVerified(e.toString())) throw new Error()
+        else console.log('=-=-=-=-=\nBattleshipGame.sol already verified\n=-=-=-=-=')
+    }
+}

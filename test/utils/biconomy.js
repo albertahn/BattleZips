@@ -6,9 +6,15 @@ const { ethers } = require('hardhat')
 const fetch = require('node-fetch')
 
 const Forwarders = { // biconomy trusted forwarding contracts
+    1: '0x84a0856b038eaAd1cC7E297cF34A7e72685A8693',
+    4: '0xFD4973FeB2031D4409fB57afEE5dF2051b171104',
+    5: '0xE041608922d06a4F26C0d4c27d8bCD01daf1f792',
+    42: '0xF82986F574803dfFd9609BE8b9c7B92f63a1410E',
+    100: '0x86C80a8aa58e0A4fa09A69624c31Ab2a6CAD56b8',
     137: '0x86C80a8aa58e0A4fa09A69624c31Ab2a6CAD56b8',
+    42161: '0xfe0fa3C06d03bDC7fb49c892BbB39113B534fB57',
     80001: '0x9399BB24DBB5C4b782C70c2969F58716Ebbd6a3b',
-    4: '0xFD4973FeB2031D4409fB57afEE5dF2051b171104'
+    421611: '0x67454E169d613a8e9BA6b06af2D267696EAaAf41'
 }
 
 const ForwardRequest = [ // type definition of erc2771 tx forwarding request
