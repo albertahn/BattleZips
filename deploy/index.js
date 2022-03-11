@@ -112,23 +112,34 @@ const ipfsDeploy = async () => {
  * @param {string} gameAddress - the address of the deployed BattleshipGame contract
  */
 const verifyEtherscan = async (bvAddress, svAddress, forwarder, gameAddress) => {
-    // check if 
+    // check if supported network
     const chainId = ethers.provider._network.chainId
-    const chains = [1, 4, 5, 42, 137, 80001]
-    if (!chains.includes(chainId) && !chains.includes(chainId)) {
+    const chains = [[1, 4, 5, 42], [137, 80001]]
+    if (!chains.flat().includes(chainId) && !chains.flat().includes(chainId)) {
         console.log('Skipping block explorer verification for unsupported network')
         return
     }
+    // check if env is configured correctly
+    const { POLYGONSCAN, ETHERSCAN } = process.env
+    if (chains[0].includes(chainId) && !ETHERSCAN) {
+        console.log(`Etherscan API key not found, skipping verification on chain ${chainId}`)
+        return
+    } else if (chains[1].includes(chainId) && !POLYGONSCAN) {
+        console.log(`Polygonscan API key not found, skipping verification on chain ${chainId}`)
+        return
+    }     
+    // error message
+    const WAIT_ERR = "Wait 30 seconds for tx to propogate and rerun"
     try {
         await run('verify:verify', { address: bvAddress })
     } catch (e) {
-        if (!alreadyVerified(e.toString())) throw new Error()
+        if (!alreadyVerified(e.toString())) throw new Error(WAIT_ERR)
         else console.log('=-=-=-=-=\nBoardVerifier.sol already verified\n=-=-=-=-=')
     }
     try {
         await run('verify:verify', { address: svAddress })
     } catch (e) {
-        if (!alreadyVerified(e.toString())) throw new Error()
+        if (!alreadyVerified(e.toString())) throw new Error(WAIT_ERR)
         else console.log('=-=-=-=-=\nShotVerifier.sol already verified\n=-=-=-=-=')
     }
     try {
@@ -137,7 +148,7 @@ const verifyEtherscan = async (bvAddress, svAddress, forwarder, gameAddress) => 
             constructorArguments: [forwarder, bvAddress, svAddress]
         })
     } catch (e) {
-        if (!alreadyVerified(e.toString())) throw new Error()
+        if (!alreadyVerified(e.toString())) throw new Error(WAIT_ERR)
         else console.log('=-=-=-=-=\nBattleshipGame.sol already verified\n=-=-=-=-=')
     }
 }

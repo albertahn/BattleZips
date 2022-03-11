@@ -2,7 +2,6 @@
 pragma solidity >=0.8.11;
 
 import "./IBattleshipGame.sol";
-import "hardhat/console.sol";
 
 contract BattleshipGame is IBattleshipGame {
     /// MODIFIERS ///
@@ -111,6 +110,7 @@ contract BattleshipGame is IBattleshipGame {
         require(game.nonce == 0, "!Turn1");
         game.shots[game.nonce] = _shot;
         game.nonce++;
+        emit Shot(uint8(_shot[0]), uint8(_shot[1]), _game);
     }
 
     function turn(
@@ -143,18 +143,14 @@ contract BattleshipGame is IBattleshipGame {
         // update game state
         game.hits[game.nonce - 1] = _hit;
         if (_hit) game.hitNonce[(game.nonce - 1) % 2]++;
-        emit Shot(
-            uint8(shot[0]),
-            uint8(shot[1]),
-            _game,
-            _hit
-        );
+        emit Report(_hit, _game);
         // check if game over
         if (game.hitNonce[(game.nonce - 1) % 2] >= HIT_MAX) gameOver(_game);
         else {
             // add next shot
             game.shots[game.nonce] = _next;
             game.nonce++;
+            emit Shot(uint8(_next[0]), uint8(_next[1]), _game);
         }
     }
 

@@ -11,12 +11,8 @@ import "./IVerifier.sol";
 abstract contract IBattleshipGame is ERC2771Context {
     event Started(uint256 _nonce, address _by);
     event Joined(uint256 _nonce, address _by);
-    event Shot(
-        uint8 _x,
-        uint8 _y,
-        uint256 _game,
-        bool _hit
-    );
+    event Shot(uint8 _x, uint8 _y, uint256 _game);
+    event Report(bool hit, uint256 _game);
     event Won(address _winner, uint256 _nonce, address _by);
 
     struct Game {
