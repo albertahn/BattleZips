@@ -25,9 +25,9 @@ abstract contract IBattleshipGame is ERC2771Context {
         address winner; // game winner
     }
 
-    uint256 constant HIT_MAX = 17; // number of hits before all ships are sunk
+    uint256 public constant HIT_MAX = 17; // number of hits before all ships are sunk
 
-    uint256 gameIndex; // current game nonce
+    uint256 public gameIndex; // current game nonce
 
     mapping(uint256 => Game) public games; // map game nonce to game data
     mapping(address => uint256) public playing; // map player address to game played
