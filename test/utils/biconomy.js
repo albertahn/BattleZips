@@ -62,26 +62,29 @@ async function addContract(address) {
         ['contractAddress', address],
         ['abi', abi],
         ['contractType', 'SC'],
-        ['metaTransactionType', 'DEFAULT'],
+        ['metaTransactionType', 'TRUSTED_FORWARDER'],
     ]);
     // post to api and add contract to biconomy
     let res = await fetch(
         'https://api.biconomy.io/api/v1/smart-contract/public-api/addContract',
         { method: 'POST', headers, body },
     );
-    // method add http body
-    body = new URLSearchParams([
-        ['apiType', 'native'],
-        ['methodType', 'write'],
-        ['name', `Execute BattleZips Metatransaction`],
-        ['contractAddress', address],
-        ['method', 'executeMetaTransaction'],
-    ]);
-    // post to api and open executeMetaTransaction through contract on biconomy api
-    res = await fetch(
-        'https://api.biconomy.io/api/v1/meta-api/public-api/addMethod',
-        { method: 'POST', headers, body },
-    );
+    const methods = ['newGame', 'joinGame', 'firstTurn', 'turn']
+    for (const method of methods) {
+        // method add http body
+        body = new URLSearchParams([
+            ['apiType', 'native'],
+            ['methodType', 'write'],
+            ['name', `BattleZips ${method} function`],
+            ['contractAddress', address],
+            ['method', method],
+        ]);
+        // post to api and open method api through contract on biconomy api
+        await fetch(
+            'https://api.biconomy.io/api/v1/meta-api/public-api/addMethod',
+            { method: 'POST', headers, body },
+        );
+    }
 }
 
 /**
