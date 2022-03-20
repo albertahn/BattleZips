@@ -29,6 +29,8 @@ abstract contract IBattleshipGame is ERC2771Context {
 
     uint256 public gameIndex; // current game nonce
 
+    address public trustedForwarder; // make trusted forwarder public
+
     mapping(uint256 => Game) public games; // map game nonce to game data
     mapping(address => uint256) public playing; // map player address to game played
 

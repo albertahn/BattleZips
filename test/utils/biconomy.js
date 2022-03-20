@@ -37,7 +37,7 @@ async function getDomain(forwarder) {
         name: 'MinimalForwarder',
         version: '0.0.1',
         chainId,
-        verifyingContract: forwarder === undefined ? Forwarders[chaidId] : forwarder,
+        verifyingContract: forwarder === undefined ? Forwarders[chainId] : forwarder,
     }
 }
 
@@ -69,7 +69,7 @@ async function addContract(address) {
         'https://api.biconomy.io/api/v1/smart-contract/public-api/addContract',
         { method: 'POST', headers, body },
     );
-    const methods = ['newGame', 'joinGame', 'firstTurn', 'turn']
+    const methods = ['firstTurn', 'turn', 'joinGame', 'newGame']
     for (const method of methods) {
         // method add http body
         body = new URLSearchParams([
@@ -80,7 +80,7 @@ async function addContract(address) {
             ['method', method],
         ]);
         // post to api and open method api through contract on biconomy api
-        await fetch(
+        let res = await fetch(
             'https://api.biconomy.io/api/v1/meta-api/public-api/addMethod',
             { method: 'POST', headers, body },
         );

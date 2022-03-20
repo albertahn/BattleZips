@@ -59,6 +59,7 @@ contract BattleshipGame is IBattleshipGame {
         address _bv,
         address _sv
     ) ERC2771Context(_forwarder) {
+        trustedForwarder = _forwarder;
         bv = IBoardVerifier(_bv);
         sv = IShotVerifier(_sv);
     }

@@ -35,6 +35,9 @@ module.exports = async ({ run, ethers, network, deployments }) => {
     })
 
     // verify deployed contracts
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+    await delay(3000)
+    console.log("30 second wait for deploy TX's to propogate to block explorer before verification")
     await verifyEtherscan(bvAddress, svAddress, forwarder, gameAddress)
 
     // add to biconomy
@@ -46,8 +49,15 @@ module.exports = async ({ run, ethers, network, deployments }) => {
         console.log('Biconomy API keys not provided, skipping')
     else if (!Object.keys(Forwarders).includes(chainId.toString()))
         console.log('Skipping Biconomy integration for unsupported network')
-    else await addContract(gameAddress)
-
+    else {
+        try {
+            await addContract(gameAddress)
+            console.log(`Biconomy configured for BattleshipGame.sol on chain ${chainId}`)
+        } catch (err) {
+            throw new Error("Failed to add contract & methods to Biconomy", err)
+        }
+        
+    }
     // add circuit files to ipfs if not hardhat
     if (chainId !== 31337) await ipfsDeploy()
     else console.log('Skipping IPFS circuit publication for hardhat network')
