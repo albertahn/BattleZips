@@ -55,12 +55,16 @@ const makeNetwork = (network) => {
     }
 }
 
+const networks = Object.entries(RPCS).reduce((obj, network) => {
+    obj[network[0]] = makeNetwork(network[0]);
+    return obj;
+}, {})
+
+networks['hardhat'] = { accounts }
+
 module.exports = {
     solidity: { compilers: [makeCompiler('0.6.11'), makeCompiler('0.8.11')] },
-    networks: Object.entries(RPCS).reduce((obj, network) => {
-        obj[network[0]] = makeNetwork(network[0]);
-        return obj;
-    }, {}),
+    networks,
     mocha: { timeout: 2000000 },
     etherscan: {
         apiKey: {
