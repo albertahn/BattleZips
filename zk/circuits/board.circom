@@ -37,7 +37,7 @@ template board() {
     }
 
     /// HASH INTEGRITY CHECK ///
-    component hasher = MiMCSponge(15, 220, 1);
+    component hasher = MiMCSponge(15, 220, 1); // (15 parameter inputs, 220 rouns of hashing, 1 output.)
     for (var i = 0; i < 15; i++)
         hasher.ins[i] <== ships[i \ 3][i % 3];
     hasher.k <== 0;

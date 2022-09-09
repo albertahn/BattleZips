@@ -26,10 +26,10 @@ describe('Play Battleship on-chain', async () => {
         /// BOB PROVES ALICE PREV REGISTERED SHOT HIT ///
         // bob's shot hit/miss integrity proof public / private inputs
         let input = {
-            ships: boards.bob,
-            hash: F.toObject(boardHashes.bob),
-            shot: shots.alice[aliceNonce - 1],
-            hit: 1,
+            ships: boards.bob, //private 
+            hash: F.toObject(boardHashes.bob), //public
+            shot: shots.alice[aliceNonce - 1],//public
+            hit: 1,//public
         }
         // compute witness and run through groth16 circuit for proof / signals
         let { proof, publicSignals } = await snarkjs.groth16.fullProve(
