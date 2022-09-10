@@ -29,7 +29,7 @@ template shot() {
     ltY.in[1] <== 10;
     ltX.out * ltY.out === 1;
     /// HASH INTEGRITY CHECK /// check if hash provided before is same hash now too
-    component hasher = MiMCSponge(15, 220, 1);
+    component hasher = MiMCSponge(15, 220, 1); //
     for (var i = 0; i < 15; i++)
         hasher.ins[i] <== ships[i \ 3][i % 3];
     hasher.k <== 0;
